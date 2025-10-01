@@ -109,7 +109,7 @@ export default function HomeRecordPage() {
               {t("grant_permission")}
             </Button>
             <Button
-              onClick={() => {
+                  onClick={() => {
                 if (recording) {
                   setRecording(false);
                   setReviewReady(true);
@@ -128,9 +128,7 @@ export default function HomeRecordPage() {
                 <Button
                   variant="outline"
                   onClick={() => {
-                    // eslint-disable-next-line no-console
-                    console.log("submit_session_mock", { duration: elapsed, journal });
-                    alert("Submitted (mock)");
+                    alert("Submitted (mock)\n" + JSON.stringify({ duration: elapsed, journal }));
                   }}
                 >
                   {t("submit_session")}

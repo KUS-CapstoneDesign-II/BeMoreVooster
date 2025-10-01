@@ -15,14 +15,13 @@ export default function ResetPasswordPage() {
       <Card className="w-full">
         <CardHeader>
           <CardTitle>Reset your password</CardTitle>
-          <CardDescription>We'll send a reset link to your email.</CardDescription>
+          <CardDescription>We&apos;ll send a reset link to your email.</CardDescription>
         </CardHeader>
         <CardContent>
           <form
             className="space-y-4"
             onSubmit={(e) => {
               e.preventDefault();
-              // eslint-disable-next-line no-console
               console.log({ email, action: "reset_password" });
               setSent(true);
             }}

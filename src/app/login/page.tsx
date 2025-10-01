@@ -64,7 +64,7 @@ export default function LoginPage({ params }: LoginPageProps) {
             </div>
             <div className="flex flex-col gap-2 pt-2">
               <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Signing In..." : t("signin_primary")}</Button>
-              <Button type="button" variant="outline" onClick={() => { /* eslint-disable-next-line no-console */ console.log("google_signin_click"); }}>
+              <Button type="button" variant="outline" onClick={() => { /* placeholder */ }}>
                 <Chrome className="mr-2 h-4 w-4" />
                 {t("signin_google")}
               </Button>
