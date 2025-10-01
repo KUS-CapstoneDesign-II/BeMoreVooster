@@ -30,10 +30,17 @@ export const createSupabaseServerClient = async (): Promise<
         getAll() {
           return cookieStore.getAll();
         },
+        // In Server Components, mutating cookies is not allowed.
+        // Attempt setting only when permitted; otherwise no-op.
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) => {
-            if (typeof cookieStore.set === "function") {
-              cookieStore.set({ name, value, ...options });
+            try {
+              if (typeof cookieStore.set === "function") {
+                // This will throw outside Route Handlers/Server Actions
+                cookieStore.set({ name, value, ...options });
+              }
+            } catch {
+              // ignore in RSC context
             }
           });
         },

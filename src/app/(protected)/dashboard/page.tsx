@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Flame, CalendarDays, BarChart3, Home, User as UserIcon } from "lucide-react";
+import Link from "next/link";
 import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -44,14 +45,7 @@ export default function DashboardPage({ params }: DashboardPageProps) {
           <BarChart3 className="h-5 w-5 text-primary" />
           <span className="text-lg font-semibold tracking-tight text-foreground">BeMore</span>
         </div>
-        <div className="flex items-center gap-3">
-          <Avatar>
-            <AvatarImage alt="avatar" src="https://picsum.photos/seed/user/64/64" />
-            <AvatarFallback>
-              {userLabel.slice(0, 2).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-        </div>
+        <div />
       </div>
 
       {/* Page Header with Date Range */}
@@ -144,9 +138,15 @@ export default function DashboardPage({ params }: DashboardPageProps) {
       {/* App Navigation (Placeholder) */}
       <div className="fixed inset-x-0 bottom-0 z-10 border-t bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:hidden">
         <nav className="mx-auto flex max-w-screen-sm items-center justify-around p-2">
-          <Button variant="ghost" size="icon" aria-label="Home"><Home className="h-5 w-5" /></Button>
-          <Button variant="ghost" size="icon" aria-label="Dashboard"><BarChart3 className="h-5 w-5" /></Button>
-          <Button variant="ghost" size="icon" aria-label="Profile"><UserIcon className="h-5 w-5" /></Button>
+          <Button asChild variant="ghost" size="icon" aria-label="Home">
+            <Link href="/home"><Home className="h-5 w-5" /></Link>
+          </Button>
+          <Button asChild variant="ghost" size="icon" aria-label="Dashboard">
+            <Link href="/dashboard"><BarChart3 className="h-5 w-5" /></Link>
+          </Button>
+          <Button asChild variant="ghost" size="icon" aria-label="Profile">
+            <Link href="/profile"><UserIcon className="h-5 w-5" /></Link>
+          </Button>
         </nav>
       </div>
     </div>

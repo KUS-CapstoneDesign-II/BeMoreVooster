@@ -11,7 +11,7 @@ BeMore는 주간 성찰 세션(얼굴·음성·텍스트)을 분석해 VAD 기�
 - 아키텍처: `vooster-docs/architecture.md`
 - 디자인 가이드: `vooster-docs/design-guide.md`
 - 정보 구조(IA): `vooster-docs/ia.md`
-- 단계별 가이드: `vooster-docs/step-by-step.md`
+- 단계별 가이드: `vooster-docs/step-by-step.md` (하단에 BeMore Development Guide 포함)
 - 코드/클린 코드: `vooster-docs/clean-code.md`, `vooster-docs/guideline.md`
 
 ## 기술 스택
@@ -21,6 +21,7 @@ BeMore는 주간 성찰 세션(얼굴·음성·텍스트)을 분석해 VAD 기�
 - Supabase (Auth/DB) — 로컬 UI 개발은 더미 env 사용 가능
 
 ## 개발 시작
+```bash
 npm install
 npm run dev
 # http://localhost:3000

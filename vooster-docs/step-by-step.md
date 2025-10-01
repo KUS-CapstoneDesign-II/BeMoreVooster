@@ -91,3 +91,52 @@ Always structure your response as:
 1. **Phase 1 Results**: [Codebase analysis findings]
 2. **Phase 2 Plan**: [Implementation roadmap]  
 3. **Phase 3 Implementation**: [Actual code with validation]
+
+---
+
+# BeMore Development Guide (Working)
+
+## Current Status
+- Branding & Theme: Tailwind palette/typography configured (`tailwind.config.ts`, `src/app/globals.css`)
+- Landing: BeMore hero + CTAs, i18n applied
+- Auth UI: Sign Up/Sign In pages with Supabase Auth wiring (email/password)
+- Protected Area: Dashboard mock (trends placeholder, snapshots, streak), Home record mock (permissions/placeholder)
+- Public Pages: `/features`, `/privacy`, `/terms` placeholders
+- i18n: Lightweight client context (`LanguageProvider`), top-right switcher
+
+## Gaps / To‑Do
+1) Routing & IA
+   - Optional: Move protected pages under `/app/*` paths fully (alias exists only for `/app/dashboard`)
+2) Auth & Session
+   - Google OAuth hookup; forgot/reset password full flow
+   - Session refresh/invalid token handling, sign-out menu in common header
+3) Recording Flow (Core)
+   - Permissions → Live preview (camera/mic) → timer & visualizers → stop & review → submit
+   - Client-only mock first; integrate upload later
+4) Dashboard
+   - Implement charts (visx/recharts) with mocked time-series; range filter behavior
+   - Drilldowns: trends, calendar view
+5) Reports
+   - List & detail (radar chart, CBT tips, PDF export placeholder)
+6) Community
+   - Feed, detail, reaction, share modal (UI-only)
+7) AI Coach
+   - Chat UI + suggested prompts (UI-only)
+8) i18n
+   - SSR-friendly strategy (routing `/(ko|en)` or cookies) and metadata
+9) Design System
+   - Shared `Header`, `BottomNav`, `Sidebar` components; dark tokens for new palette
+10) Quality
+   - Tests (unit for UI utils), accessibility pass, perf budgets; CI lint/type
+
+## Prioritized Roadmap
+1. Recording UI (end-to-end mock) → Dashboard charts (mock data)
+2. Auth completeness (reset, Google) → Header/Nav unification
+3. Reports/Community/Coach UI scaffolds
+4. i18n SSR + metadata, dark theme tokens
+5. API integration (after UI stabilized)
+
+## Conventions
+- Follow `vooster-docs/clean-code.md` and `vooster-docs/guideline.md`
+- Keep edits small, feature-scoped, and typed; avoid global refactors
+- Public routes stay accessible; protected routes enforced via middleware
