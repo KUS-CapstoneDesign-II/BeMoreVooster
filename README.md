@@ -13,6 +13,7 @@ BeMore는 주간 성찰 세션(얼굴·음성·텍스트)을 분석해 VAD 기�
 - 정보 구조(IA): `vooster-docs/ia.md`
 - 단계별 가이드: `vooster-docs/step-by-step.md` (하단에 BeMore Development Guide 포함)
 - 코드/클린 코드: `vooster-docs/clean-code.md`, `vooster-docs/guideline.md`
+- 개발 가이드라인: `vooster-docs/development-guidelines.md`
 
 ## 기술 스택
 - Next.js 15, TypeScript, Tailwind CSS (v4)
@@ -32,7 +33,14 @@ npm run dev
 # .env.local
 NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=dummy-anon-key
+# Optional avatar bucket name (default: avatars)
+NEXT_PUBLIC_AVATAR_BUCKET=avatars
 ```
+
+## Storage 설정(아바타)
+1) Supabase Dashboard → Storage → Create bucket: `avatars` (Public ON)
+2) Policies: Public read(select), Auth insert/update/delete(owner = auth.uid())
+3) 프로필 페이지에서 이미지 업로드 후 저장하면 미리보기 반영 및 `user_metadata.avatar_url` 저장
 
 ## 주요 경로
 - 공개: `/`, `/login`, `/signup`

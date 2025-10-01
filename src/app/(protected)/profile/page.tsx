@@ -129,7 +129,18 @@ export default function ProfilePage() {
           </div>
           <div className="space-y-2">
             <Label>{t("profile_image_label")}</Label>
-            <FileUpload onFileChange={setAvatarFile} accept="image/*">
+            <FileUpload
+              onFileChange={(file) => {
+                const isImage = file.type.startsWith("image/");
+                const under5mb = file.size <= 5 * 1024 * 1024;
+                if (!isImage || !under5mb) {
+                  alert("Only images up to 5MB are allowed");
+                  return;
+                }
+                setAvatarFile(file);
+              }}
+              accept="image/*"
+            >
               <p className="text-sm text-muted-foreground">{t("upload_hint")}</p>
             </FileUpload>
             <div className="pt-2">
