@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 type Locale = "en" | "ko";
 
@@ -72,6 +72,7 @@ const en: Dictionary = {
   preview: "Preview",
   bucket_missing: "Storage bucket not found. Create a public bucket in Supabase Storage (e.g., 'public' or 'avatars').",
   no_image: "No image",
+  remove_avatar: "Remove Avatar",
 };
 
 const ko: Dictionary = {
@@ -140,6 +141,7 @@ const ko: Dictionary = {
   preview: "미리보기",
   bucket_missing: "스토리지 버킷을 찾을 수 없습니다. Supabase Storage에 공개 버킷(예: 'public' 또는 'avatars')을 생성하세요.",
   no_image: "이미지 없음",
+  remove_avatar: "이미지 제거",
 };
 
 const dictionaries: Record<Locale, Dictionary> = { en, ko };
@@ -153,8 +155,18 @@ type LanguageContextValue = {
 const LanguageContext = createContext<LanguageContextValue | null>(null);
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const initial = (typeof window !== "undefined" && (localStorage.getItem("bemore_locale") as Locale)) || "ko";
-  const [locale, setLocaleState] = useState<Locale>(initial);
+  // Stable initial locale on server and client to avoid hydration mismatch
+  const [locale, setLocaleState] = useState<Locale>("ko");
+
+  // After mount, load stored locale and update
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("bemore_locale") as Locale | null;
+      if (stored === "en" || stored === "ko") {
+        setLocaleState(stored);
+      }
+    } catch {}
+  }, []);
 
   const setLocale = useCallback((next: Locale) => {
     setLocaleState(next);

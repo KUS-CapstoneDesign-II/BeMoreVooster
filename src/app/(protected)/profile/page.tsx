@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,10 +11,12 @@ import { getSupabaseBrowserClient } from "@/lib/supabase/browser-client";
 import { useI18n } from "@/features/i18n/language-context";
 
 export default function ProfilePage() {
+  const BUCKET_NAME = (process.env.NEXT_PUBLIC_AVATAR_BUCKET as string) || "avatars";
   const { user, refresh } = useCurrentUser();
   const [nickname, setNickname] = useState<string>(() => String(user?.userMetadata?.nickname || ""));
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>((): string | null => String(user?.userMetadata?.avatar_url || "") || null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const email = useMemo(() => user?.email ?? "-", [user?.email]);
   const { t } = useI18n();
@@ -24,25 +26,39 @@ export default function ProfilePage() {
     try {
       const supabase = getSupabaseBrowserClient();
       let avatar_url: string | undefined = undefined;
+      // Upload new avatar if selected
       if (avatarFile) {
-        const bucket = "avatars"; // use a dedicated bucket
+        const bucket = BUCKET_NAME; // configurable bucket name
         const path = `${user?.id}/${Date.now()}-${avatarFile.name}`;
-        const { data: upload, error: uploadError } = await supabase.storage.from(bucket).upload(path, avatarFile, { upsert: true });
+        const { data: upload, error: uploadError } = await supabase.storage
+          .from(bucket)
+          .upload(path, avatarFile, {
+            upsert: true,
+            cacheControl: "3600",
+            contentType: avatarFile.type || "application/octet-stream",
+          });
         if (uploadError) {
           if (uploadError.message?.toLowerCase().includes("bucket not found")) {
             alert(t("bucket_missing"));
           }
+          alert(uploadError.message || "Upload failed (400)");
           throw uploadError;
         }
         const { data: pub } = supabase.storage.from(bucket).getPublicUrl(upload.path);
         avatar_url = pub.publicUrl;
       }
-      const { error: updateError } = await supabase.auth.updateUser({
-        data: { nickname, ...(avatar_url ? { avatar_url } : {}) },
-      });
+      // If avatarFile is null and avatarUrl is null, treat as removal
+      const nextMeta: Record<string, unknown> = { nickname };
+      if (avatarFile) nextMeta.avatar_url = avatar_url;
+      if (!avatarFile && avatarUrl === null) nextMeta.avatar_url = null;
+      const { error: updateError } = await supabase.auth.updateUser({ data: nextMeta });
       if (updateError) throw updateError;
       await refresh();
-      if (avatar_url) setAvatarUrl(avatar_url);
+      if (avatar_url) {
+        setAvatarUrl(avatar_url);
+        setPreviewUrl(null);
+        try { localStorage.removeItem("bemore_avatar_preview"); } catch {}
+      }
       alert(t("saved"));
     } catch (e) {
       alert(t("save_failed"));
@@ -50,6 +66,33 @@ export default function ProfilePage() {
       setIsSaving(false);
     }
   }, [avatarFile, nickname, refresh, user?.id]);
+
+  // Generate local object URL for immediate preview when a file is chosen
+  useEffect(() => {
+    if (!avatarFile) return;
+    const url = URL.createObjectURL(avatarFile);
+    setPreviewUrl(url);
+    // Also persist as data URL to survive reloads before save
+    try {
+      const reader = new FileReader();
+      reader.onload = () => {
+        try { localStorage.setItem("bemore_avatar_preview", String(reader.result || "")); } catch {}
+      };
+      reader.readAsDataURL(avatarFile);
+    } catch {}
+    return () => {
+      URL.revokeObjectURL(url);
+    };
+  }, [avatarFile]);
+
+  // Load persisted preview on mount if no server avatar is set
+  useEffect(() => {
+    if (avatarUrl) return;
+    try {
+      const stored = localStorage.getItem("bemore_avatar_preview");
+      if (stored) setPreviewUrl(stored);
+    } catch {}
+  }, [avatarUrl]);
 
   return (
     <div className="mx-auto w-full max-w-3xl px-6 py-12">
@@ -63,7 +106,10 @@ export default function ProfilePage() {
             <Label>{t("preview")}</Label>
             <div className="flex items-center gap-4">
               <div className="h-16 w-16 overflow-hidden rounded-full border bg-muted">
-                {avatarUrl ? (
+                {previewUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img alt="avatar" src={previewUrl} className="h-full w-full object-cover" />
+                ) : avatarUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img alt="avatar" src={avatarUrl} className="h-full w-full object-cover" />
                 ) : (
@@ -86,6 +132,11 @@ export default function ProfilePage() {
             <FileUpload onFileChange={setAvatarFile} accept="image/*">
               <p className="text-sm text-muted-foreground">{t("upload_hint")}</p>
             </FileUpload>
+            <div className="pt-2">
+              <Button variant="ghost" onClick={() => { setAvatarUrl(null); setAvatarFile(null); setPreviewUrl(null); try { localStorage.removeItem("bemore_avatar_preview"); } catch {} }}>
+                {t("remove_avatar")}
+              </Button>
+            </div>
           </div>
           <div className="flex gap-3">
             <Button onClick={handleSave} disabled={isSaving}>{isSaving ? t("saving") : t("save_changes")}</Button>
