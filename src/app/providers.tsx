@@ -8,6 +8,7 @@ import {
   QueryClientProvider,
 } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
+import { LanguageProvider } from "@/features/i18n/language-context";
 
 function makeQueryClient() {
   return new QueryClient({
@@ -52,7 +53,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       forcedTheme="light"
       disableTransitionOnChange
     >
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <LanguageProvider>
+        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      </LanguageProvider>
     </ThemeProvider>
   );
 }

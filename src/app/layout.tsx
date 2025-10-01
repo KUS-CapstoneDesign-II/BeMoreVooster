@@ -3,6 +3,7 @@ import "./globals.css";
 import Providers from "./providers";
 import { loadCurrentUser } from "@/features/auth/server/load-current-user";
 import { CurrentUserProvider } from "@/features/auth/context/current-user-context";
+import { LanguageSwitcher } from "@/components/ui/language-switcher";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -21,7 +22,12 @@ export default async function RootLayout({
       <body className="antialiased font-sans">
         <Providers>
           <CurrentUserProvider initialState={currentUser}>
-            {children}
+            <div className="relative min-h-dvh">
+              <div className="pointer-events-auto fixed right-4 top-4 z-50">
+                <LanguageSwitcher />
+              </div>
+              {children}
+            </div>
           </CurrentUserProvider>
         </Providers>
       </body>

@@ -1,11 +1,21 @@
 import { match } from "ts-pattern";
 
-const PUBLIC_PATHS = ["/", "/login", "/signup"] as const;
+const PUBLIC_PATHS = [
+  "/",
+  "/login",
+  "/signup",
+  "/auth/signin",
+  "/auth/signup",
+  "/auth/reset-password",
+  "/features",
+  "/privacy",
+  "/terms",
+] as const;
 const PUBLIC_PREFIXES = ["/_next", "/api", "/favicon", "/static", "/docs", "/images"] as const;
 
 export const LOGIN_PATH = "/login";
 export const SIGNUP_PATH = "/signup";
-export const AUTH_ENTRY_PATHS = [LOGIN_PATH, SIGNUP_PATH] as const;
+export const AUTH_ENTRY_PATHS = [LOGIN_PATH, SIGNUP_PATH, "/auth/signin", "/auth/signup"] as const;
 export const isAuthEntryPath = (
   pathname: string
 ): pathname is (typeof AUTH_ENTRY_PATHS)[number] =>

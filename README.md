@@ -21,7 +21,6 @@ BeMore는 주간 성찰 세션(얼굴·음성·텍스트)을 분석해 VAD 기�
 - Supabase (Auth/DB) — 로컬 UI 개발은 더미 env 사용 가능
 
 ## 개발 시작
-```bash
 npm install
 npm run dev
 # http://localhost:3000

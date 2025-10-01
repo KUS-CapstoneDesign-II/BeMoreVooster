@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useI18n } from "@/features/i18n/language-context";
 
 type DashboardPageProps = {
   params: Promise<Record<string, never>>;
@@ -28,6 +29,7 @@ export default function DashboardPage({ params }: DashboardPageProps) {
   void params;
   const { user } = useCurrentUser();
   const [range, setRange] = useState<string>("30");
+  const { t } = useI18n();
 
   const userLabel = useMemo(() => {
     if (user?.email) return user.email;
@@ -56,19 +58,19 @@ export default function DashboardPage({ params }: DashboardPageProps) {
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between lg:mb-8">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
-            Your Progress, {userLabel}
+            {t("dashboard_greeting")}, {userLabel}
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">Track your emotions and build mindful habits.</p>
+          <p className="mt-1 text-sm text-muted-foreground">{t("hero_sub")}</p>
         </div>
         <div className="w-full sm:w-56">
           <Select value={range} onValueChange={setRange}>
             <SelectTrigger aria-label="Select date range">
-              <SelectValue placeholder="Last 30 Days" />
+              <SelectValue placeholder={t("range_30")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="7">Last 7 Days</SelectItem>
-              <SelectItem value="30">Last 30 Days</SelectItem>
-              <SelectItem value="90">Last 90 Days</SelectItem>
+              <SelectItem value="7">{t("range_7")}</SelectItem>
+              <SelectItem value="30">{t("range_30")}</SelectItem>
+              <SelectItem value="90">{t("range_90")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -80,16 +82,16 @@ export default function DashboardPage({ params }: DashboardPageProps) {
         <Card className="lg:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div>
-              <CardTitle>Emotion Trends</CardTitle>
-              <CardDescription>Valence, Arousal, Dominance over time</CardDescription>
+              <CardTitle>{t("emotion_trends")}</CardTitle>
+              <CardDescription>{`${t("valence")}, ${t("arousal")}, ${t("dominance")} over time`}</CardDescription>
             </div>
           </CardHeader>
           <CardContent>
             <div className="h-64 w-full rounded-md bg-muted" aria-label="Chart placeholder" />
             <div className="mt-4 flex flex-wrap items-center gap-4">
-              <div className="flex items-center gap-2 text-sm"><span className="h-2.5 w-2.5 rounded-full bg-primary" /> <span>Valence</span></div>
-              <div className="flex items-center gap-2 text-sm"><span className="h-2.5 w-2.5 rounded-full bg-accent" /> <span>Arousal</span></div>
-              <div className="flex items-center gap-2 text-sm"><span className="h-2.5 w-2.5 rounded-full bg-secondary" /> <span>Dominance</span></div>
+              <div className="flex items-center gap-2 text-sm"><span className="h-2.5 w-2.5 rounded-full bg-primary" /> <span>{t("valence")}</span></div>
+              <div className="flex items-center gap-2 text-sm"><span className="h-2.5 w-2.5 rounded-full bg-accent" /> <span>{t("arousal")}</span></div>
+              <div className="flex items-center gap-2 text-sm"><span className="h-2.5 w-2.5 rounded-full bg-secondary" /> <span>{t("dominance")}</span></div>
             </div>
           </CardContent>
         </Card>
@@ -100,15 +102,15 @@ export default function DashboardPage({ params }: DashboardPageProps) {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0">
               <div>
-                <CardTitle>Habit Streak</CardTitle>
-                <CardDescription>Your weekly reflections streak</CardDescription>
+                <CardTitle>{t("habit_streak")}</CardTitle>
+                <CardDescription>{t("hero_sub")}</CardDescription>
               </div>
               <Flame className="h-6 w-6 text-accent" />
             </CardHeader>
             <CardContent>
               <div className="flex items-baseline gap-2">
                 <span className="text-3xl font-semibold text-foreground">4</span>
-                <span className="text-sm text-muted-foreground">Weeks Strong</span>
+                <span className="text-sm text-muted-foreground">{t("weekly_reflections")}</span>
               </div>
             </CardContent>
           </Card>
@@ -116,7 +118,7 @@ export default function DashboardPage({ params }: DashboardPageProps) {
           {/* Recent Snapshots */}
           <section>
             <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-lg font-medium text-foreground">Recent Snapshots</h2>
+              <h2 className="text-lg font-medium text-foreground">{t("recent_snapshots")}</h2>
               <CalendarDays className="h-5 w-5 text-muted-foreground" />
             </div>
             {/* Mobile: horizontal scroll; Desktop: simple grid in column */}
