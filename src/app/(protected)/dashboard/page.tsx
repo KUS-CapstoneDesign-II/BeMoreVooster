@@ -33,9 +33,11 @@ export default function DashboardPage({ params }: DashboardPageProps) {
   const { t } = useI18n();
 
   const userLabel = useMemo(() => {
+    const nickname = (user?.userMetadata as any)?.nickname as string | undefined;
+    if (nickname && nickname.trim().length > 0) return nickname;
     if (user?.email) return user.email;
     return "Guest";
-  }, [user?.email]);
+  }, [user?.email, user?.userMetadata]);
 
   return (
     <div className="mx-auto w-full max-w-screen-2xl px-4 py-6 md:px-6 md:py-8 lg:px-8 lg:py-10">
