@@ -65,7 +65,7 @@ export default function ProfilePage() {
     } finally {
       setIsSaving(false);
     }
-  }, [avatarFile, nickname, refresh, user?.id]);
+  }, [BUCKET_NAME, avatarFile, avatarUrl, nickname, refresh, t, user?.id]);
 
   // Generate local object URL for immediate preview when a file is chosen
   useEffect(() => {
