@@ -9,6 +9,7 @@ import { FileUpload } from "@/components/ui/file-upload";
 import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser-client";
 import { useI18n } from "@/features/i18n/language-context";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ProfilePage() {
   const BUCKET_NAME = (process.env.NEXT_PUBLIC_AVATAR_BUCKET as string) || "avatars";
@@ -20,6 +21,7 @@ export default function ProfilePage() {
   const [isSaving, setIsSaving] = useState(false);
   const email = useMemo(() => user?.email ?? "-", [user?.email]);
   const { t } = useI18n();
+  const { toast } = useToast();
 
   const handleSave = useCallback(async () => {
     setIsSaving(true);
@@ -39,9 +41,10 @@ export default function ProfilePage() {
           });
         if (uploadError) {
           if (uploadError.message?.toLowerCase().includes("bucket not found")) {
-            alert(t("bucket_missing"));
+            toast({ title: t("profile_image_label"), description: t("bucket_missing"), variant: "destructive" });
+          } else {
+            toast({ title: t("profile_image_label"), description: uploadError.message || "Upload failed (400)", variant: "destructive" });
           }
-          alert(uploadError.message || "Upload failed (400)");
           throw uploadError;
         }
         const { data: pub } = supabase.storage.from(bucket).getPublicUrl(upload.path);
@@ -59,9 +62,9 @@ export default function ProfilePage() {
         setPreviewUrl(null);
         try { localStorage.removeItem("bemore_avatar_preview"); } catch {}
       }
-      alert(t("saved"));
+      toast({ title: t("profile_title"), description: t("saved") });
     } catch (e) {
-      alert(t("save_failed"));
+      toast({ title: t("profile_title"), description: t("save_failed"), variant: "destructive" });
     } finally {
       setIsSaving(false);
     }

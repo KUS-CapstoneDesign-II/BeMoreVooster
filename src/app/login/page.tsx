@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Chrome } from "lucide-react";
 import { useI18n } from "@/features/i18n/language-context";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser-client";
+import { useToast } from "@/hooks/use-toast";
 
 type LoginPageProps = {
   params: Promise<Record<string, never>>;
@@ -24,6 +25,7 @@ export default function LoginPage({ params }: LoginPageProps) {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { toast } = useToast();
 
   const handleSubmit = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -34,8 +36,10 @@ export default function LoginPage({ params }: LoginPageProps) {
       const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
       if (signInError) {
         setError(signInError.message || "Failed to sign in.");
+        toast({ title: t("signin_primary"), description: signInError.message || "Failed to sign in.", variant: "destructive" });
         return;
       }
+      toast({ title: t("signin_primary"), description: "Signed in successfully" });
       const redirectedFrom = searchParams.get("redirectedFrom") || "/dashboard";
       router.replace(redirectedFrom);
     } catch (e) {

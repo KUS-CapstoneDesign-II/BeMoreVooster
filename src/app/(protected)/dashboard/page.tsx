@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useI18n } from "@/features/i18n/language-context";
+import { VADLineChart, generateMockSeries } from "@/features/dashboard/components/vad-line-chart";
 
 type DashboardPageProps = {
   params: Promise<Record<string, never>>;
@@ -31,6 +32,7 @@ export default function DashboardPage({ params }: DashboardPageProps) {
   const { user } = useCurrentUser();
   const [range, setRange] = useState<string>("30");
   const { t } = useI18n();
+  const data = useMemo(() => generateMockSeries(Number(range)), [range]);
 
   const userLabel = useMemo(() => {
     const nickname = (user?.userMetadata as any)?.nickname as string | undefined;
@@ -83,7 +85,7 @@ export default function DashboardPage({ params }: DashboardPageProps) {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="h-64 w-full rounded-md bg-muted" aria-label="Chart placeholder" />
+            <VADLineChart data={data} />
             <div className="mt-4 flex flex-wrap items-center gap-4">
               <div className="flex items-center gap-2 text-sm"><span className="h-2.5 w-2.5 rounded-full bg-primary" /> <span>{t("valence")}</span></div>
               <div className="flex items-center gap-2 text-sm"><span className="h-2.5 w-2.5 rounded-full bg-accent" /> <span>{t("arousal")}</span></div>

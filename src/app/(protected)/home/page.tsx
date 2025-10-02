@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useI18n } from "@/features/i18n/language-context";
+import { useToast } from "@/hooks/use-toast";
 
 export default function HomeRecordPage() {
   const { t } = useI18n();
@@ -20,6 +21,25 @@ export default function HomeRecordPage() {
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const rafRef = useRef<number | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const { toast } = useToast();
+
+  // Cleanup on unmount: stop media, cancel raf, close audio
+  useEffect(() => {
+    return () => {
+      try {
+        if (rafRef.current) cancelAnimationFrame(rafRef.current);
+        if (audioContextRef.current && audioContextRef.current.state !== "closed") {
+          audioContextRef.current.close().catch(() => {});
+        }
+        streamRef.current?.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+        if (timerRef.current) {
+          window.clearInterval(timerRef.current);
+        }
+      } catch {}
+    };
+  }, []);
 
   useEffect(() => {
     if (recording) {
@@ -62,6 +82,7 @@ export default function HomeRecordPage() {
               onClick={async () => {
                 try {
                   const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                  streamRef.current = stream;
                   setPermission("granted");
                   if (videoRef.current) {
                     videoRef.current.srcObject = stream;
@@ -100,8 +121,9 @@ export default function HomeRecordPage() {
                   };
                   if (rafRef.current) cancelAnimationFrame(rafRef.current);
                   draw();
-                } catch {
+                } catch (e) {
                   setPermission("denied");
+                  toast({ title: t("record_title"), description: "Permission denied or no device", variant: "destructive" });
                 }
               }}
               variant="outline"
@@ -128,7 +150,7 @@ export default function HomeRecordPage() {
                 <Button
                   variant="outline"
                   onClick={() => {
-                    alert("Submitted (mock)\n" + JSON.stringify({ duration: elapsed, journal }));
+                    toast({ title: t("submit_session"), description: JSON.stringify({ duration: elapsed, journal }) });
                   }}
                 >
                   {t("submit_session")}
@@ -139,6 +161,15 @@ export default function HomeRecordPage() {
                     setElapsed(0);
                     setReviewReady(false);
                     setJournal("");
+                    // cleanup
+                    try {
+                      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+                      if (audioContextRef.current && audioContextRef.current.state !== "closed") {
+                        audioContextRef.current.close().catch(() => {});
+                      }
+                      streamRef.current?.getTracks().forEach((t) => t.stop());
+                      streamRef.current = null;
+                    } catch {}
                   }}
                 >
                   {t("reset")}

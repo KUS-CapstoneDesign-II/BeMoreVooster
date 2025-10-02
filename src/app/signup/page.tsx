@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Chrome } from "lucide-react";
 import { useI18n } from "@/features/i18n/language-context";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser-client";
+import { useToast } from "@/hooks/use-toast";
 
 type SignupPageProps = {
   params: Promise<Record<string, never>>;
@@ -24,6 +25,7 @@ export default function SignupPage({ params }: SignupPageProps) {
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const router = useRouter();
+  const { toast } = useToast();
 
   const handleSubmit = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -35,16 +37,20 @@ export default function SignupPage({ params }: SignupPageProps) {
       const { data, error: signUpError } = await supabase.auth.signUp({ email, password });
       if (signUpError) {
         setError(signUpError.message || "Failed to create account.");
+        toast({ title: t("signup_primary"), description: signUpError.message || "Failed to create account.", variant: "destructive" });
         return;
       }
       if (data.session) {
+        toast({ title: t("signup_primary"), description: "Account created and signed in" });
         router.replace("/dashboard");
       } else {
         setInfo("Verification email sent. Please check your inbox.");
+        toast({ title: t("signup_primary"), description: "Verification email sent" });
         router.prefetch("/login");
       }
     } catch (e) {
       setError("Unexpected error occurred.");
+      toast({ title: t("signup_primary"), description: "Unexpected error occurred.", variant: "destructive" });
     } finally {
       setIsSubmitting(false);
     }
