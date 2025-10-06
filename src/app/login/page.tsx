@@ -27,6 +27,24 @@ export default function LoginPage({ params }: LoginPageProps) {
   const searchParams = useSearchParams();
   const { toast } = useToast();
 
+  const getErrorMessage = (error: any) => {
+    if (!error) return "로그인에 실패했습니다.";
+
+    // Supabase 오류 코드에 따른 사용자 친화적 메시지
+    switch (error.message) {
+      case "Invalid login credentials":
+        return "이메일 또는 비밀번호가 올바르지 않습니다. 다시 확인해주세요.";
+      case "Email not confirmed":
+        return "이메일 인증이 완료되지 않았습니다. 이메일을 확인해주세요.";
+      case "Too many requests":
+        return "너무 많은 로그인 시도가 있었습니다. 잠시 후 다시 시도해주세요.";
+      case "User not found":
+        return "등록되지 않은 이메일입니다. 회원가입을 먼저 진행해주세요.";
+      default:
+        return error.message || "로그인 중 오류가 발생했습니다.";
+    }
+  };
+
   const handleSubmit = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsSubmitting(true);
@@ -35,19 +53,22 @@ export default function LoginPage({ params }: LoginPageProps) {
       const supabase = getSupabaseBrowserClient();
       const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
       if (signInError) {
-        setError(signInError.message || "Failed to sign in.");
-        toast({ title: t("signin_primary"), description: signInError.message || "Failed to sign in.", variant: "destructive" });
+        const errorMessage = getErrorMessage(signInError);
+        setError(errorMessage);
+        toast({ title: "로그인 실패", description: errorMessage, variant: "destructive" });
         return;
       }
-      toast({ title: t("signin_primary"), description: "Signed in successfully" });
+      toast({ title: "로그인 성공", description: "성공적으로 로그인되었습니다." });
       const redirectedFrom = searchParams.get("redirectedFrom") || "/dashboard";
       router.replace(redirectedFrom);
     } catch (e) {
-      setError("Unexpected error occurred.");
+      const errorMessage = "예상치 못한 오류가 발생했습니다.";
+      setError(errorMessage);
+      toast({ title: "오류", description: errorMessage, variant: "destructive" });
     } finally {
       setIsSubmitting(false);
     }
-  }, [email, password, router, searchParams]);
+  }, [email, password, router, searchParams, toast]);
 
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-md items-center justify-center px-6 py-16">

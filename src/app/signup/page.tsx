@@ -27,6 +27,24 @@ export default function SignupPage({ params }: SignupPageProps) {
   const router = useRouter();
   const { toast } = useToast();
 
+  const getSignupErrorMessage = (error: any) => {
+    if (!error) return "회원가입에 실패했습니다.";
+
+    // Supabase 오류 코드에 따른 사용자 친화적 메시지
+    switch (error.message) {
+      case "User already registered":
+        return "이미 가입된 이메일입니다. 로그인을 시도해보세요.";
+      case "Password should be at least 6 characters":
+        return "비밀번호는 최소 6자 이상이어야 합니다.";
+      case "Signup is disabled":
+        return "현재 회원가입이 비활성화되어 있습니다.";
+      case "Invalid email":
+        return "유효하지 않은 이메일 형식입니다.";
+      default:
+        return error.message || "회원가입 중 오류가 발생했습니다.";
+    }
+  };
+
   const handleSubmit = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsSubmitting(true);
@@ -36,25 +54,28 @@ export default function SignupPage({ params }: SignupPageProps) {
       const supabase = getSupabaseBrowserClient();
       const { data, error: signUpError } = await supabase.auth.signUp({ email, password });
       if (signUpError) {
-        setError(signUpError.message || "Failed to create account.");
-        toast({ title: t("signup_primary"), description: signUpError.message || "Failed to create account.", variant: "destructive" });
+        const errorMessage = getSignupErrorMessage(signUpError);
+        setError(errorMessage);
+        toast({ title: "회원가입 실패", description: errorMessage, variant: "destructive" });
         return;
       }
       if (data.session) {
-        toast({ title: t("signup_primary"), description: "Account created and signed in" });
+        toast({ title: "회원가입 성공", description: "계정이 생성되고 로그인되었습니다." });
         router.replace("/dashboard");
       } else {
-        setInfo("Verification email sent. Please check your inbox.");
-        toast({ title: t("signup_primary"), description: "Verification email sent" });
+        const infoMessage = "인증 이메일이 발송되었습니다. 이메일을 확인해주세요.";
+        setInfo(infoMessage);
+        toast({ title: "인증 이메일 발송", description: infoMessage });
         router.prefetch("/login");
       }
     } catch (e) {
-      setError("Unexpected error occurred.");
-      toast({ title: t("signup_primary"), description: "Unexpected error occurred.", variant: "destructive" });
+      const errorMessage = "예상치 못한 오류가 발생했습니다.";
+      setError(errorMessage);
+      toast({ title: "오류", description: errorMessage, variant: "destructive" });
     } finally {
       setIsSubmitting(false);
     }
-  }, [email, password, router]);
+  }, [email, password, router, toast]);
 
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-md items-center justify-center px-6 py-16">
