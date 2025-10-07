@@ -323,8 +323,9 @@ export default function ProfilePage() {
                 )}
               </Button>
             </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
