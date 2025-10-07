@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { FileUpload } from "@/components/ui/file-upload";
 import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser-client";
+import { fetchProfile, updateProfile } from "@/features/profile/lib/api";
+import { getSignedAvatarUpload } from "@/features/storage/lib/api";
 import { useI18n } from "@/features/i18n/language-context";
 import { useToast } from "@/hooks/use-toast";
 
@@ -30,31 +32,32 @@ export default function ProfilePage() {
       let avatar_url: string | undefined = undefined;
       // Upload new avatar if selected
       if (avatarFile) {
-        const bucket = BUCKET_NAME; // configurable bucket name
-        const path = `${user?.id}/${Date.now()}-${avatarFile.name}`;
-        const { data: upload, error: uploadError } = await supabase.storage
-          .from(bucket)
-          .upload(path, avatarFile, {
-            upsert: true,
-            cacheControl: "3600",
-            contentType: avatarFile.type || "application/octet-stream",
-          });
-        if (uploadError) {
-          if (uploadError.message?.toLowerCase().includes("bucket not found")) {
-            toast({ title: t("profile_image_label"), description: t("bucket_missing"), variant: "destructive" });
-          } else {
-            toast({ title: t("profile_image_label"), description: uploadError.message || "Upload failed (400)", variant: "destructive" });
-          }
-          throw uploadError;
+        // Signed upload flow
+        const signed = await getSignedAvatarUpload(avatarFile.name);
+        const form = new FormData();
+        form.append('token', signed.token);
+        form.append('file', avatarFile, avatarFile.name);
+        const uploadRes = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/upload/sign/${signed.path}`, {
+          method: 'POST',
+          headers: { 'x-upsert': 'true' },
+          body: form,
+        });
+        if (!uploadRes.ok) {
+          toast({ title: t("profile_image_label"), description: t("upload_failed_generic"), variant: "destructive" });
+          throw new Error('Signed upload failed');
         }
-        const { data: pub } = supabase.storage.from(bucket).getPublicUrl(upload.path);
-        avatar_url = pub.publicUrl;
+        avatar_url = signed.publicUrl;
       }
-      // If avatarFile is null and avatarUrl is null, treat as removal
-      const nextMeta: Record<string, unknown> = { nickname };
-      if (avatarFile) nextMeta.avatar_url = avatar_url;
-      if (!avatarFile && avatarUrl === null) nextMeta.avatar_url = null;
-      const { error: updateError } = await supabase.auth.updateUser({ data: nextMeta });
+      // Persist to profiles via API
+      const profile = await updateProfile({
+        nickname,
+        avatar_url: avatarFile ? (avatar_url ?? null) : avatarUrl,
+      });
+
+      // Sync auth metadata for UI that still reads from auth
+      const { error: updateError } = await supabase.auth.updateUser({
+        data: { nickname: profile.nickname, avatar_url: profile.avatar_url },
+      });
       if (updateError) throw updateError;
       await refresh();
       if (avatar_url) {
@@ -88,14 +91,26 @@ export default function ProfilePage() {
     };
   }, [avatarFile]);
 
-  // Load persisted preview on mount if no server avatar is set
+  // Initial load from /api/profile and fallback preview
   useEffect(() => {
-    if (avatarUrl) return;
-    try {
-      const stored = localStorage.getItem("bemore_avatar_preview");
-      if (stored) setPreviewUrl(stored);
-    } catch {}
-  }, [avatarUrl]);
+    (async () => {
+      try {
+        const p = await fetchProfile();
+        setNickname(p.nickname || "");
+        setAvatarUrl(p.avatar_url);
+      } catch {
+        // ignore; fall back to auth metadata and preview
+      } finally {
+        if (!avatarUrl) {
+          try {
+            const stored = localStorage.getItem("bemore_avatar_preview");
+            if (stored) setPreviewUrl(stored);
+          } catch {}
+        }
+      }
+    })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="mx-auto w-full max-w-3xl px-6 py-12">
