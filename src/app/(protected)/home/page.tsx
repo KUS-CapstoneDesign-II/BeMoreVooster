@@ -252,8 +252,9 @@ export default function HomeRecordPage() {
                 {journal.length} characters
               </p>
             </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
