@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useI18n } from "@/features/i18n/language-context";
 import { VADLineChart, generateMockSeries } from "@/features/dashboard/components/vad-line-chart";
 
@@ -29,7 +30,7 @@ const MOCK_SNAPSHOTS = [
 
 export default function DashboardPage({ params }: DashboardPageProps) {
   void params;
-  const { user } = useCurrentUser();
+  const { user, isLoading } = useCurrentUser();
   const [range, setRange] = useState<string>("30");
   const { t } = useI18n();
   const data = useMemo(() => generateMockSeries(Number(range)), [range]);
@@ -40,6 +41,57 @@ export default function DashboardPage({ params }: DashboardPageProps) {
     if (user?.email) return user.email;
     return "Guest";
   }, [user?.email, user?.userMetadata]);
+
+  // Loading skeleton UI
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-hero-alt relative">
+        <div className="absolute inset-0 radial-teal opacity-50" />
+        <div className="relative mx-auto w-full max-w-screen-2xl px-4 py-6 md:px-6 md:py-8 lg:px-8 lg:py-10">
+          {/* Header Skeleton */}
+          <div className="mb-6 flex items-center justify-between lg:mb-8">
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-10 w-10 rounded-xl" />
+              <Skeleton className="h-6 w-24" />
+            </div>
+            <Skeleton className="h-10 w-10 rounded-full" />
+          </div>
+
+          {/* Page Header Skeleton */}
+          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between lg:mb-10">
+            <div className="space-y-3">
+              <Skeleton className="h-10 w-64" />
+              <Skeleton className="h-5 w-96" />
+            </div>
+            <Skeleton className="h-10 w-full sm:w-64" />
+          </div>
+
+          {/* Content Skeleton */}
+          <div className="grid gap-6 lg:grid-cols-3 pb-24 lg:pb-10">
+            <Card className="lg:col-span-2 glass border-white/20 shadow-float">
+              <CardHeader>
+                <Skeleton className="h-8 w-48" />
+                <Skeleton className="h-4 w-64 mt-2" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-64 w-full" />
+              </CardContent>
+            </Card>
+
+            <div className="space-y-6">
+              <Card className="glass border-white/20 shadow-float">
+                <CardContent className="pt-6 space-y-4">
+                  <Skeleton className="h-10 w-10 rounded-full" />
+                  <Skeleton className="h-12 w-20" />
+                  <Skeleton className="h-4 w-32" />
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-hero-alt relative">
